@@ -4,7 +4,7 @@ using TradeHub.Shared;
 
 namespace TradeHub.Server.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [ApiController]
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
