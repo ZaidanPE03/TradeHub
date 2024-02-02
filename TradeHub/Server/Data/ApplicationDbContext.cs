@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TradeHub.Server.Configuration.Entities;
+using TradeHub.Server.Configurations.Entities;
 using TradeHub.Server.Models;
 using TradeHub.Shared.Domain;
 
@@ -27,6 +28,10 @@ namespace TradeHub.Server.Data
 
             builder.ApplyConfiguration(new StaffSeedConfiguration());
             builder.ApplyConfiguration(new CustomerSeedConfiguration());
+
+            builder.ApplyConfiguration(new RoleSeedConfiguration());
+            builder.ApplyConfiguration(new UserRoleSeedConfiguration());
+            builder.ApplyConfiguration(new UserSeedConfiguration());
         }
        
 
