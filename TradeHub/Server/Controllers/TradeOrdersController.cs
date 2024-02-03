@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TradeHub.Server.Data;
+using TradeHub.Server.IRepository;
 using TradeHub.Shared.Domain;
 
 namespace TradeHub.Server.Controllers
@@ -14,61 +14,52 @@ namespace TradeHub.Server.Controllers
     [ApiController]
     public class TradeOrdersController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public TradeOrdersController(ApplicationDbContext context)
+        public TradeOrdersController(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         // GET: api/TradeOrders
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TradeOrder>>> GetTradeOrders()
+        public async Task<IActionResult> GetTradeOrders()
         {
-          if (_context.TradeOrders == null)
-          {
-              return NotFound();
-          }
-            return await _context.TradeOrders.ToListAsync();
+            var TradeOrders = await _unitOfWork.TradeOrders.GetAll();
+            return Ok(TradeOrders);
         }
 
-        // GET: api/TradeOrders/5
+        // GET: api/TradeOrderss/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TradeOrder>> GetTradeOrder(int id)
+        public async Task<IActionResult> GetTradeOrder(int id) // Renamed method to match naming convention
         {
-          if (_context.TradeOrders == null)
-          {
-              return NotFound();
-          }
-            var tradeOrder = await _context.TradeOrders.FindAsync(id);
+            var TradeOrder = await _unitOfWork.TradeOrders.Get(q => q.Id == id);
 
-            if (tradeOrder == null)
+            if (TradeOrder == null)
             {
                 return NotFound();
             }
-
-            return tradeOrder;
+            return Ok(TradeOrder);
         }
 
-        // PUT: api/TradeOrders/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // PUT: api/TradeOrderss/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTradeOrder(int id, TradeOrder tradeOrder)
+        public async Task<IActionResult> PutTradeOrder(int id, TradeOrder TradeOrder)
         {
-            if (id != tradeOrder.Id)
+            if (id != TradeOrder.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(tradeOrder).State = EntityState.Modified;
+            _unitOfWork.TradeOrders.Update(TradeOrder);
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Save(HttpContext);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!TradeOrderExists(id))
+                if (!await TradeOrderExists(id))
                 {
                     return NotFound();
                 }
@@ -81,44 +72,37 @@ namespace TradeHub.Server.Controllers
             return NoContent();
         }
 
-        // POST: api/TradeOrders
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // POST: api/TradeOrderss
         [HttpPost]
-        public async Task<ActionResult<TradeOrder>> PostTradeOrder(TradeOrder tradeOrder)
+        public async Task<ActionResult<TradeOrder>> PostTradeOrder(TradeOrder TradeOrder)
         {
-          if (_context.TradeOrders == null)
-          {
-              return Problem("Entity set 'ApplicationDbContext.TradeOrders'  is null.");
-          }
-            _context.TradeOrders.Add(tradeOrder);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.TradeOrders.Insert(TradeOrder);
+            await _unitOfWork.Save(HttpContext);
 
-            return CreatedAtAction("GetTradeOrder", new { id = tradeOrder.Id }, tradeOrder);
+            // Ensuring the method name passed to CreatedAtAction matches the action name for getting a single TradeOrder.
+            return CreatedAtAction(nameof(GetTradeOrder), new { id = TradeOrder.Id }, TradeOrder);
         }
 
         // DELETE: api/TradeOrders/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTradeOrder(int id)
         {
-            if (_context.TradeOrders == null)
-            {
-                return NotFound();
-            }
-            var tradeOrder = await _context.TradeOrders.FindAsync(id);
-            if (tradeOrder == null)
+            var TradeOrder = await _unitOfWork.TradeOrders.Get(q => q.Id == id);
+            if (TradeOrder == null)
             {
                 return NotFound();
             }
 
-            _context.TradeOrders.Remove(tradeOrder);
-            await _context.SaveChangesAsync();
+            _unitOfWork.TradeOrders.Delete(id);
+            await _unitOfWork.Save(HttpContext);
 
             return NoContent();
         }
 
-        private bool TradeOrderExists(int id)
+        private async Task<bool> TradeOrderExists(int id)
         {
-            return (_context.TradeOrders?.Any(e => e.Id == id)).GetValueOrDefault();
+            var TradeOrder = await _unitOfWork.TradeOrders.Get(q => q.Id == id);
+            return TradeOrder != null;
         }
     }
 }

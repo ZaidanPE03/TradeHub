@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TradeHub.Server.Data;
+using TradeHub.Server.IRepository;
 using TradeHub.Shared.Domain;
 
 namespace TradeHub.Server.Controllers
@@ -14,61 +14,52 @@ namespace TradeHub.Server.Controllers
     [ApiController]
     public class SellOrdersController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public SellOrdersController(ApplicationDbContext context)
+        public SellOrdersController(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         // GET: api/SellOrders
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<SellOrder>>> GetSellOrders()
+        public async Task<IActionResult> GetSellOrders()
         {
-          if (_context.SellOrders == null)
-          {
-              return NotFound();
-          }
-            return await _context.SellOrders.ToListAsync();
+            var SellOrders = await _unitOfWork.SellOrders.GetAll();
+            return Ok(SellOrders);
         }
 
-        // GET: api/SellOrders/5
+        // GET: api/SellOrderss/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<SellOrder>> GetSellOrder(int id)
+        public async Task<IActionResult> GetSellOrder(int id) // Renamed method to match naming convention
         {
-          if (_context.SellOrders == null)
-          {
-              return NotFound();
-          }
-            var sellOrder = await _context.SellOrders.FindAsync(id);
+            var SellOrder = await _unitOfWork.SellOrders.Get(q => q.Id == id);
 
-            if (sellOrder == null)
+            if (SellOrder == null)
             {
                 return NotFound();
             }
-
-            return sellOrder;
+            return Ok(SellOrder);
         }
 
-        // PUT: api/SellOrders/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // PUT: api/SellOrderss/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutSellOrder(int id, SellOrder sellOrder)
+        public async Task<IActionResult> PutSellOrder(int id, SellOrder SellOrder)
         {
-            if (id != sellOrder.Id)
+            if (id != SellOrder.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(sellOrder).State = EntityState.Modified;
+            _unitOfWork.SellOrders.Update(SellOrder);
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Save(HttpContext);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!SellOrderExists(id))
+                if (!await SellOrderExists(id))
                 {
                     return NotFound();
                 }
@@ -81,44 +72,37 @@ namespace TradeHub.Server.Controllers
             return NoContent();
         }
 
-        // POST: api/SellOrders
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // POST: api/SellOrderss
         [HttpPost]
-        public async Task<ActionResult<SellOrder>> PostSellOrder(SellOrder sellOrder)
+        public async Task<ActionResult<SellOrder>> PostSellOrder(SellOrder SellOrder)
         {
-          if (_context.SellOrders == null)
-          {
-              return Problem("Entity set 'ApplicationDbContext.SellOrders'  is null.");
-          }
-            _context.SellOrders.Add(sellOrder);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.SellOrders.Insert(SellOrder);
+            await _unitOfWork.Save(HttpContext);
 
-            return CreatedAtAction("GetSellOrder", new { id = sellOrder.Id }, sellOrder);
+            // Ensuring the method name passed to CreatedAtAction matches the action name for getting a single SellOrder.
+            return CreatedAtAction(nameof(GetSellOrder), new { id = SellOrder.Id }, SellOrder);
         }
 
         // DELETE: api/SellOrders/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSellOrder(int id)
         {
-            if (_context.SellOrders == null)
-            {
-                return NotFound();
-            }
-            var sellOrder = await _context.SellOrders.FindAsync(id);
-            if (sellOrder == null)
+            var SellOrder = await _unitOfWork.SellOrders.Get(q => q.Id == id);
+            if (SellOrder == null)
             {
                 return NotFound();
             }
 
-            _context.SellOrders.Remove(sellOrder);
-            await _context.SaveChangesAsync();
+            _unitOfWork.SellOrders.Delete(id);
+            await _unitOfWork.Save(HttpContext);
 
             return NoContent();
         }
 
-        private bool SellOrderExists(int id)
+        private async Task<bool> SellOrderExists(int id)
         {
-            return (_context.SellOrders?.Any(e => e.Id == id)).GetValueOrDefault();
+            var SellOrder = await _unitOfWork.SellOrders.Get(q => q.Id == id);
+            return SellOrder != null;
         }
     }
 }

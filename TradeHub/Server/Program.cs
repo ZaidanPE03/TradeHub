@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using TradeHub.Server.Data;
 using TradeHub.Server.Models;
 using Microsoft.AspNetCore.Identity;
+using TradeHub.Server.IRepository;
+using TradeHub.Server.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,7 @@ builder.Services.AddAuthentication()
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 

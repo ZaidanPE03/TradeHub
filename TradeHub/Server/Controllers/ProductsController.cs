@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TradeHub.Server.Data;
+using TradeHub.Server.IRepository;
 using TradeHub.Shared.Domain;
 
 namespace TradeHub.Server.Controllers
@@ -14,61 +14,52 @@ namespace TradeHub.Server.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public ProductsController(ApplicationDbContext context)
+        public ProductsController(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        public async Task<IActionResult> GetProducts()
         {
-          if (_context.Products == null)
-          {
-              return NotFound();
-          }
-            return await _context.Products.ToListAsync();
+            var Products = await _unitOfWork.Products.GetAll();
+            return Ok(Products);
         }
 
-        // GET: api/Products/5
+        // GET: api/Productss/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
+        public async Task<IActionResult> Getproduct(int id) // Renamed method to match naming convention
         {
-          if (_context.Products == null)
-          {
-              return NotFound();
-          }
-            var product = await _context.Products.FindAsync(id);
+            var product = await _unitOfWork.Products.Get(q => q.Id == id);
 
             if (product == null)
             {
                 return NotFound();
             }
-
-            return product;
+            return Ok(product);
         }
 
-        // PUT: api/Products/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // PUT: api/Productss/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(int id, Product product)
+        public async Task<IActionResult> Putproduct(int id, Product product)
         {
             if (id != product.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(product).State = EntityState.Modified;
+            _unitOfWork.Products.Update(product);
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _unitOfWork.Save(HttpContext);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ProductExists(id))
+                if (!await productExists(id))
                 {
                     return NotFound();
                 }
@@ -81,44 +72,37 @@ namespace TradeHub.Server.Controllers
             return NoContent();
         }
 
-        // POST: api/Products
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // POST: api/Productss
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
+        public async Task<ActionResult<Product>> Postproduct(Product product)
         {
-          if (_context.Products == null)
-          {
-              return Problem("Entity set 'ApplicationDbContext.Products'  is null.");
-          }
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
+            await _unitOfWork.Products.Insert(product);
+            await _unitOfWork.Save(HttpContext);
 
-            return CreatedAtAction("GetProduct", new { id = product.Id }, product);
+            // Ensuring the method name passed to CreatedAtAction matches the action name for getting a single product.
+            return CreatedAtAction(nameof(Getproduct), new { id = product.Id }, product);
         }
 
         // DELETE: api/Products/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProduct(int id)
+        public async Task<IActionResult> Deleteproduct(int id)
         {
-            if (_context.Products == null)
-            {
-                return NotFound();
-            }
-            var product = await _context.Products.FindAsync(id);
+            var product = await _unitOfWork.Products.Get(q => q.Id == id);
             if (product == null)
             {
                 return NotFound();
             }
 
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
+            _unitOfWork.Products.Delete(id);
+            await _unitOfWork.Save(HttpContext);
 
             return NoContent();
         }
 
-        private bool ProductExists(int id)
+        private async Task<bool> productExists(int id)
         {
-            return (_context.Products?.Any(e => e.Id == id)).GetValueOrDefault();
+            var product = await _unitOfWork.Products.Get(q => q.Id == id);
+            return product != null;
         }
     }
 }
