@@ -1,0 +1,89 @@
+﻿@page "/staffs"
+@inject HttpClient _client
+@inject IJSRuntime js
+@attribute [Authorize]
+@using TradeHub.Client.Components
+
+
+<h3 class="card-title"> Staff Page</h3>
+<br />
+
+
+@if (Staffs == null)
+{
+    <div class="alert alert-info">Loading Staff data... </div>
+}
+
+else
+{
+	<table class="table table-responsive">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Contact</th>
+				<th>Email Address</th>
+				<th>Role</th>
+
+			</tr>
+		</thead>
+
+		<tbody>
+			@foreach (var staff in Staffs)
+			{
+				<tr>
+					<td>@staff.Name</td>
+					<td>@staff.Contact</td>
+					<td>@staff.Email</td>
+					<td>@staff.Role</td>
+
+					<td>
+
+						<a href="/staffs/view/@staff.Id" class="btn btn-primary">
+							<span class="oi oi-book"></span>
+						</a>
+
+						<a href="/staffs/edit/@staff.Id" class="btn btn-warning">
+							<span class="oi oi-pencil"></span>
+						</a>
+
+						<button class="btn btn-danger" @onclick="@(()=>Delete(staff.Id))">
+							<span class="oi oi-delete"></span>
+
+						</button>
+					</td>
+
+				</tr>
+			}
+		</tbody>
+	</table>
+
+}
+
+ <StaffPageContentComponent />
+ 
+@code 
+{
+    private List<Staff>? Staffs;
+
+    protected async override Task OnInitializedAsync()
+    {
+        Staffs = await _client.GetFromJsonAsync<List<Staff>>($"{Endpoints.StaffsEndpoint}");
+    }
+
+    async Task Delete(int staffId)
+    {
+        if (Staffs != null)
+        {
+            var staff = Staffs.First(q => q.Id == staffId);
+            var confirm = await js.InvokeAsync<bool>("Confirm", $"Do you want to delete {staff.Name}?");
+
+            if(confirm)
+            {
+                await _client.DeleteAsync($"{Endpoints.StaffsEndpoint}/{staffId}");
+                await OnInitializedAsync();
+            }
+
+        }
+    }
+
+}

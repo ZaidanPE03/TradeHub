@@ -1,0 +1,87 @@
+﻿@page "/tradeorders"
+@inject HttpClient _client
+@inject IJSRuntime js
+@attribute [Authorize]
+@using TradeHub.Client.Components
+
+
+<h3 class="card-title"> TradeOrder Page</h3>
+<br />
+
+
+@if (TradeOrders == null)
+{
+    <div class="alert alert-info">Loading TradeOrder data... </div>
+}
+
+else
+{
+	<table class="table table-responsive">
+		<thead>
+			<tr>
+				<th>Trade Date</th>
+				<th>Trade Time</th>
+				<th>Delivery Mode</th>
+
+			</tr>
+		</thead>
+
+		<tbody>
+			@foreach (var tradeorder in TradeOrders)
+			{
+				<tr>
+					<td>@tradeorder.TradeDate</td>
+					<td>@tradeorder.TradeTime</td>
+					<td>@tradeorder.DeliveryMode</td>
+					
+
+					<td>
+
+						<a href="/tradeorders/view/@tradeorder.Id" class="btn btn-primary">
+							<span class="oi oi-book"></span>
+						</a>
+
+						<a href="/tradeorders/edit/@tradeorder.Id" class="btn btn-warning">
+							<span class="oi oi-pencil"></span>
+						</a>
+
+						<button class="btn btn-danger" @onclick="@(()=>Delete(tradeorder.Id))">
+							<span class="oi oi-delete"></span>
+
+						</button>
+					</td>
+
+				</tr>
+			}
+		</tbody>
+	</table>
+
+}
+
+ 
+@code 
+{
+    private List<TradeOrder>? TradeOrders;
+
+    protected async override Task OnInitializedAsync()
+    {
+        TradeOrders = await _client.GetFromJsonAsync<List<TradeOrder>>($"{Endpoints.TradeOrdersEndpoint}");
+    }
+
+    async Task Delete(int tradeorderId)
+    {
+        if (TradeOrders != null)
+        {
+            var tradeorder = TradeOrders.First(q => q.Id == tradeorderId);
+            var confirm = await js.InvokeAsync<bool>("Confirm", $"Do you want to delete {tradeorder.Id}?");
+
+            if(confirm)
+            {
+                await _client.DeleteAsync($"{Endpoints.TradeOrdersEndpoint}/{tradeorderId}");
+                await OnInitializedAsync();
+            }
+
+        }
+    }
+
+}

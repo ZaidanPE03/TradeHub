@@ -16,5 +16,7 @@ namespace TradeHub.Shared.Domain
         public virtual Staff? Staff { get; set; }
         public int CustomerId { get; set; }
         public virtual Customer? Customer { get; set; }
+        //public int ProductId { get; set; }
+        //public virtual Product? Product { get; set;}
     }
 }

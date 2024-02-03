@@ -1,0 +1,90 @@
+﻿@page "/products"
+@inject HttpClient _client
+@inject IJSRuntime js
+@attribute [Authorize]
+@using TradeHub.Client.Components
+
+
+<h3 class="card-title"> Product Page</h3>
+<br />
+
+
+@if (Products == null)
+{
+    <div class="alert alert-info">Loading Product data... </div>
+}
+
+else
+{
+	<table class="table table-responsive">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Type</th>
+				<th>Quantity</th>
+				<th>Price</th>
+
+			</tr>
+		</thead>
+
+		<tbody>
+			@foreach (var product in Products)
+			{
+				<tr>
+					<td>@product.Name</td>
+					<td>@product.Description</td>
+					<td>@product.Type</td>
+					<td>@product.Quantity</td>
+					<td> @product.Price</td>
+
+					<td>
+
+						<a href="/products/view/@product.Id" class="btn btn-primary">
+							<span class="oi oi-book"></span>
+						</a>
+
+						<a href="/products/edit/@product.Id" class="btn btn-warning">
+							<span class="oi oi-pencil"></span>
+						</a>
+
+						<button class="btn btn-danger" @onclick="@(()=>Delete(product.Id))">
+							<span class="oi oi-delete"></span>
+
+						</button>
+					</td>
+
+				</tr>
+			}
+		</tbody>
+	</table>
+
+}
+
+ 
+@code 
+{
+    private List<Product>? Products;
+
+    protected async override Task OnInitializedAsync()
+    {
+        Products = await _client.GetFromJsonAsync<List<Product>>($"{Endpoints.ProductsEndpoint}");
+    }
+
+    async Task Delete(int productId)
+    {
+        if (Products != null)
+        {
+            var product = Products.First(q => q.Id == productId);
+            var confirm = await js.InvokeAsync<bool>("Confirm", $"Do you want to delete {product.Name}?");
+
+            if(confirm)
+            {
+                await _client.DeleteAsync($"{Endpoints.ProductsEndpoint}/{productId}");
+                await OnInitializedAsync();
+            }
+
+        }
+    }
+
+}

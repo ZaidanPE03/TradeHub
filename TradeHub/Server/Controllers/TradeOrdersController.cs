@@ -37,7 +37,7 @@ namespace TradeHub.Server.Controllers
             //  return await _context.TradeOrders.ToListAsync();
 
 
-            var tradeorders = await _unitOfWork.TradeOrders.GetAll();
+            var tradeorders = await _unitOfWork.TradeOrders.GetAll(includes: q => q.Include(x => x.Customer));
             return Ok(tradeorders);
         }
 
