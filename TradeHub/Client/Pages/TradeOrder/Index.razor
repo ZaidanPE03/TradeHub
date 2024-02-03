@@ -1,0 +1,83 @@
+﻿@page "/TradeOrders/"
+@inject HttpClient _client
+@inject IJSRuntime js
+@attribute [Authorize]
+
+@using System.Runtime.CompilerServices
+@using System.Threading
+@using System
+@using TradeHub.Client.Static
+@using TradeHub.Shared.Domain
+
+<h3 class="card-title">Trade Orders</h3>
+
+@if (TradeOrders == null)
+{
+    <div class="alert alert-info">Loading Trade Orders...</div>
+}
+else
+{
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Trade Date</th>
+                <th>Trade Time</th>
+                <th>Delivery Mode</th>
+                <th>Staff ID</th>
+                <th>Customer ID</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var TradeOrder in TradeOrders)
+            {
+                <tr>
+                    <td>@TradeOrder.TradeDate.ToString("yyyy-MM-dd")</td>
+                    <td>@TradeOrder.TradeTime.ToString()</td>
+                    <td>@TradeOrder.DeliveryMode</td>
+                    <td>@TradeOrder.StaffId</td>
+                    <td>@TradeOrder.CustomerId</td>
+                    <td>
+                        <a href="TradeOrders/view/@TradeOrder.Id" class="btn btn-primary">
+                            <span class="oi oi-book"></span>
+                        </a>
+                        <a href="TradeOrders/edit/@TradeOrder.Id" class="btn btn-warning">
+                            <span class="oi oi-pencil"></span>
+                        </a>
+                        <button class="btn btn-danger" @onclick="(() => Delete(TradeOrder.Id))">
+                            <span class="oi oi-delete"></span>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<TradeOrder>? TradeOrders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        TradeOrders = await _client.GetFromJsonAsync<List<TradeOrder>>($"{Endpoints.TradeOrdersEndpoint}");
+    }
+
+    async Task Delete(int TradeOrderId)
+    {
+        if (TradeOrders != null)
+        {
+            var TradeOrder = TradeOrders.FirstOrDefault(q => q.Id == TradeOrderId);
+            if (TradeOrder != null)
+            {
+                var confirm = await js.InvokeAsync<bool>("confirm", $"Do you want to delete {TradeOrder.Id}?");
+                if (confirm)
+                {
+                    await _client.DeleteAsync($"{Endpoints.TradeOrdersEndpoint}/{TradeOrderId}");
+                    TradeOrders.Remove(TradeOrder);
+                    StateHasChanged(); // Notify the component to refresh the UI
+                }
+            }
+        }
+    }
+}

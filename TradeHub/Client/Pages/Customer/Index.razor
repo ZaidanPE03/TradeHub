@@ -3,7 +3,7 @@
 @inject IJSRuntime js
 @attribute [Authorize]
 
-<h3 class="card-title">Customers</h3>
+<h3 class="card-title">Customer's</h3>
 @if (Customers == null)
 {
     <div class="alert alert-info">Loading Customers...</div>
@@ -14,6 +14,9 @@ else
         <thead>
             <tr>
                 <th>Name</th>
+                <th>Contact</th>
+                <th>Email</th>
+                <th>Address</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -22,6 +25,9 @@ else
             {
                 <tr>
                     <td>@Customer.Name</td>
+                    <td>@Customer.Contact</td>
+                    <td>@Customer.Email</td>
+                    <td>@Customer.Address</td>
                     <td>
                         <a href="Customers/view/@Customer.Id" class="btn btn-primary">
                             <span class="oi oi-book"></span>
@@ -36,6 +42,7 @@ else
                 </tr>
             }
         </tbody>
+
     </table>
 }
 

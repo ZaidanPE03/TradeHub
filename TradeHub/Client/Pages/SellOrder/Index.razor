@@ -1,0 +1,83 @@
+﻿@page "/SellOrders/"
+@inject HttpClient _client
+@inject IJSRuntime js
+@attribute [Authorize]
+
+@using System.Runtime.CompilerServices
+@using System.Threading
+@using System
+@using TradeHub.Client.Static
+@using TradeHub.Shared.Domain
+
+<h3 class="card-title">Sell Orders</h3>
+
+@if (SellOrders == null)
+{
+    <div class="alert alert-info">Loading Sell Orders...</div>
+}
+else
+{
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Sell Date</th>
+                <th>Sell Time</th>
+                <th>Delivery Mode</th>
+                <th>Staff ID</th>
+                <th>Customer ID</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var SellOrder in SellOrders)
+            {
+                <tr>
+                    <td>@SellOrder.SellDate.ToString("yyyy-MM-dd")</td>
+                    <td>@SellOrder.SellTime.ToString()</td>
+                    <td>@SellOrder.DeliveryMode</td>
+                    <td>@SellOrder.StaffId</td>
+                    <td>@SellOrder.CustomerId</td>
+                    <td>
+                        <a href="SellOrders/view/@SellOrder.Id" class="btn btn-primary">
+                            <span class="oi oi-book"></span>
+                        </a>
+                        <a href="SellOrders/edit/@SellOrder.Id" class="btn btn-warning">
+                            <span class="oi oi-pencil"></span>
+                        </a>
+                        <button class="btn btn-danger" @onclick="(() => Delete(SellOrder.Id))">
+                            <span class="oi oi-delete"></span>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<SellOrder>? SellOrders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        SellOrders = await _client.GetFromJsonAsync<List<SellOrder>>($"{Endpoints.SellOrdersEndpoint}");
+    }
+
+    async Task Delete(int SellOrderId)
+    {
+        if (SellOrders != null)
+        {
+            var SellOrder = SellOrders.FirstOrDefault(q => q.Id == SellOrderId);
+            if (SellOrder != null)
+            {
+                var confirm = await js.InvokeAsync<bool>("confirm", $"Do you want to delete {SellOrder.Id}?");
+                if (confirm)
+                {
+                    await _client.DeleteAsync($"{Endpoints.SellOrdersEndpoint}/{SellOrderId}");
+                    SellOrders.Remove(SellOrder);
+                    StateHasChanged(); // Notify the component to refresh the UI
+                }
+            }
+        }
+    }
+}
