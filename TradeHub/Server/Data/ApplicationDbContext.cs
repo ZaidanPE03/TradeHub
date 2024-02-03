@@ -28,6 +28,7 @@ namespace TradeHub.Server.Data
 
             builder.ApplyConfiguration(new StaffSeedConfiguration());
             builder.ApplyConfiguration(new CustomerSeedConfiguration());
+            builder.ApplyConfiguration(new ProductSeedConfiguration());
 
             builder.ApplyConfiguration(new RoleSeedConfiguration());
             builder.ApplyConfiguration(new UserRoleSeedConfiguration());

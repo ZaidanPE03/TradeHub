@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TradeHub.Server.Data;
 
@@ -11,9 +12,11 @@ using TradeHub.Server.Data;
 namespace TradeHub.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240202135824_AddedProductSeed1")]
+    partial class AddedProductSeed1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -396,7 +399,7 @@ namespace TradeHub.Server.Data.Migrations
                         {
                             Id = "3781efa7-66dc-47f0-860f-e506d04102e4",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "fbc3a2c7-7e4a-42a2-9ef3-a75363d24297",
+                            ConcurrencyStamp = "46bf6489-a937-4051-9ae0-ec8555b1b564",
                             Email = "admin@localhost.com",
                             EmailConfirmed = false,
                             FirstName = "Admin",
@@ -404,9 +407,9 @@ namespace TradeHub.Server.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@LOCALHOST.COM",
                             NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEBaNMUUO3fba/aBRFTlreaI0l5VwXxtgwVZjtcLpISJ98LoT/YOMjO21C8/xhYYONQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEN5koNvEnWBoVdQx8qAU2HQJGuxC7WHRl6TKyqlfQrbin1zDXrbFyvnC6cdQkdfeaw==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "be01d9ee-b79d-4620-aaf7-1a17db81d930",
+                            SecurityStamp = "f8bf7dbc-1a92-4348-95a4-ae83b7c5ebd1",
                             TwoFactorEnabled = false,
                             UserName = "admin@localhost.com"
                         });
