@@ -30,6 +30,7 @@ namespace TradeHub.Server.Controllers
         //public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
         public async Task<IActionResult> GetProducts()
         {
+            
             //if (_context.Products == null)
             //{
             //    return NotFound();

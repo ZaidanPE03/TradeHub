@@ -8,6 +8,6 @@
         public static readonly string CustomersEndpoint = $"{Prefix}/customers";
         public static readonly string TradeOrdersEndpoint = $"{Prefix}/tradeorders";
         public static readonly string SellOrdersEndpoint = $"{Prefix}/sellorders";
-        public static readonly string ProductsEndpoint = $"{Prefix}/products";
+        public static readonly string ProductsEndpoint = $"{Prefix}/Products";
     }
 }

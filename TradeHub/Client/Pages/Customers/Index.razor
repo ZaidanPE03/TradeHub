@@ -1,12 +1,21 @@
 ﻿@page "/customers"
 @inject HttpClient _client
 @inject IJSRuntime js
+
+
 @attribute [Authorize]
 @using TradeHub.Client.Components
 
 
 <h3 class="card-title"> Customer Page</h3>
+
 <br />
+<a href="/customers/create" class="btn btn-secondary">
+	<span class="oi oi-plus"></span>
+	Create New Customer
+</a>
+<br />
+
 
 
 @if (Customers == null)
@@ -62,27 +71,31 @@ else
  
 @code 
 {
-    private List<Customer>? Customers;
+	private List<Customer>? Customers;
 
-    protected async override Task OnInitializedAsync()
-    {
-        Customers = await _client.GetFromJsonAsync<List<Customer>>($"{Endpoints.CustomersEndpoint}");
+	protected async override Task OnInitializedAsync()
+	{
+		
+		Customers = await _client.GetFromJsonAsync<List<Customer>>($"{Endpoints.CustomersEndpoint}");
     }
 
-    async Task Delete(int customerId)
-    {
-        if (Customers != null)
-        {
-            var customer = Customers.First(q => q.Id == customerId);
-            var confirm = await js.InvokeAsync<bool>("Confirm", $"Do you want to delete {customer.Name}?");
+	async Task Delete(int customerId)
+	{
+		if (Customers != null)
+		{
+			var customer = Customers.First(q => q.Id == customerId);
+			var confirm = await js.InvokeAsync<bool>("confirm", $"Do you want to delete {customer.Name}?");
 
-            if(confirm)
-            {
-                await _client.DeleteAsync($"{Endpoints.CustomersEndpoint}/{customerId}");
-                await OnInitializedAsync();
-            }
+			if (confirm)
+			{
+				await _client.DeleteAsync($"{Endpoints.CustomersEndpoint}/{customerId}");
+				await OnInitializedAsync();
+			}
+		}
+	}
 
-        }
-    }
+
+
 
 }
+

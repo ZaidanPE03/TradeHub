@@ -7,6 +7,11 @@
 
 <h3 class="card-title"> SellOrder Page</h3>
 <br />
+<a href="/sellorders/create" class="btn btn-secondary">
+	<span class="oi oi-plus"></span>
+	New Listing
+</a>
+<br />
 
 
 @if (SellOrders == null)
@@ -19,9 +24,11 @@ else
 	<table class="table table-responsive">
 		<thead>
 			<tr>
+				<th>Product Name</th>
 				<th>Trade Date</th>
 				<th>Trade Time</th>
 				<th>Delivery Mode</th>
+				<th>Created By</th>
 
 			</tr>
 		</thead>
@@ -30,9 +37,11 @@ else
 			@foreach (var sellorder in SellOrders)
 			{
 				<tr>
+					<td>@GetProductNameById(sellorder.ProductId)</td>
 					<td>@sellorder.SellDate</td>
 					<td>@sellorder.SellTime</td>
 					<td>@sellorder.DeliveryMode</td>
+					<td>@GetCustNameById(sellorder.CustomerId)</td>
 					
 
 					<td>
@@ -63,26 +72,43 @@ else
 @code 
 {
     private List<SellOrder>? SellOrders;
+	private List<Product>? Products;
+	private List<Customer>? Customers;
 
     protected async override Task OnInitializedAsync()
     {
         SellOrders = await _client.GetFromJsonAsync<List<SellOrder>>($"{Endpoints.SellOrdersEndpoint}");
+		Products = await _client.GetFromJsonAsync<List<Product>>($"{Endpoints.ProductsEndpoint}");
+		Customers = await _client.GetFromJsonAsync<List<Customer>>($"{Endpoints.CustomersEndpoint}");
     }
 
-    async Task Delete(int sellorderId)
-    {
-        if (SellOrders != null)
-        {
-            var sellorder = SellOrders.First(q => q.Id == sellorderId);
-            var confirm = await js.InvokeAsync<bool>("Confirm", $"Do you want to delete {sellorder.Id}?");
+	private string GetProductNameById(int? productId)
+	{
+		var product = Products?.FirstOrDefault(p => p.Id == productId);
 
-            if(confirm)
-            {
-                await _client.DeleteAsync($"{Endpoints.SellOrdersEndpoint}/{sellorderId}");
-                await OnInitializedAsync();
-            }
+		return product != null ? product.Name : "Product Not Found";
+	}
 
-        }
-    }
+	private string GetCustNameById(int? customerId)
+	{
+		var customer = Customers?.FirstOrDefault(p => p.Id == customerId);
+
+		return customer != null ? customer.Name : "Customer Not Found";
+	}
+
+	async Task Delete(int sellorderId)
+	{
+		if (SellOrders != null)
+		{
+			var sellorder = SellOrders.First(q => q.Id == sellorderId);
+			var confirm = await js.InvokeAsync<bool>("confirm", $"Do you want to delete{sellorderId}?");
+
+			if (confirm)
+			{
+				await _client.DeleteAsync($"{Endpoints.SellOrdersEndpoint}/{sellorderId}");
+				await OnInitializedAsync();
+			}
+		}
+	}
 
 }

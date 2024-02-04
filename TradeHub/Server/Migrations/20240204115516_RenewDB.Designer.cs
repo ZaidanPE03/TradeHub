@@ -9,11 +9,11 @@ using TradeHub.Server.Data;
 
 #nullable disable
 
-namespace TradeHub.Server.Data.Migrations
+namespace TradeHub.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240202074755_AddAplicationTables")]
-    partial class AddAplicationTables
+    [Migration("20240204115516_RenewDB")]
+    partial class RenewDB
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -191,6 +191,20 @@ namespace TradeHub.Server.Data.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "ad2bcf0c-20db-474f-8407-5a6b159518ba",
+                            Name = "Administrator",
+                            NormalizedName = "ADMINISTRATOR"
+                        },
+                        new
+                        {
+                            Id = "bd2bcf0c-20db-474f-8407-5a6b159518bb",
+                            Name = "User",
+                            NormalizedName = "USER"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -280,6 +294,13 @@ namespace TradeHub.Server.Data.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = "3781efa7-66dc-47f0-860f-e506d04102e4",
+                            RoleId = "ad2bcf0c-20db-474f-8407-5a6b159518ba"
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -372,6 +393,26 @@ namespace TradeHub.Server.Data.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "3781efa7-66dc-47f0-860f-e506d04102e4",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "58288832-76a6-47c8-a2a7-063ec0ce4fb0",
+                            Email = "admin@localhost.com",
+                            EmailConfirmed = false,
+                            FirstName = "Admin",
+                            LastName = "User",
+                            LockoutEnabled = false,
+                            NormalizedEmail = "ADMIN@LOCALHOST.COM",
+                            NormalizedUserName = "ADMIN@LOCALHOST.COM",
+                            PasswordHash = "AQAAAAIAAYagAAAAECNuWjC1IQENwJ/BAbmoHkxgMODoNX3xdv45wyrjMd20DMd63AYwpt6ZxRXurr0wxQ==",
+                            PhoneNumberConfirmed = false,
+                            SecurityStamp = "83ac96f6-19af-41e9-9140-9bb45e847c23",
+                            TwoFactorEnabled = false,
+                            UserName = "admin@localhost.com"
+                        });
                 });
 
             modelBuilder.Entity("TradeHub.Shared.Domain.Customer", b =>
@@ -397,6 +438,24 @@ namespace TradeHub.Server.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Customers");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Address = "485 PasirRis Street 21",
+                            Contact = "123456",
+                            Email = "Marry@Jane.com",
+                            Name = "Marry"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Address = "231 Tampines Street 12",
+                            Contact = "326541",
+                            Email = "Kelly@Low.com",
+                            Name = "Kelly"
+                        });
                 });
 
             modelBuilder.Entity("TradeHub.Shared.Domain.Product", b =>
@@ -422,13 +481,7 @@ namespace TradeHub.Server.Data.Migrations
                     b.Property<int>("SellId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("SellOrderId")
-                        .HasColumnType("int");
-
                     b.Property<int>("TradeId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TradeOrderId")
                         .HasColumnType("int");
 
                     b.Property<string>("Type")
@@ -436,11 +489,31 @@ namespace TradeHub.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SellOrderId");
-
-                    b.HasIndex("TradeOrderId");
-
                     b.ToTable("Products");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Description = "Mini Electric Toaster",
+                            Name = "Toaster",
+                            Price = 30.5f,
+                            Quantity = 1,
+                            SellId = 0,
+                            TradeId = 0,
+                            Type = "Electronics"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Description = "Fast and lightweight road bike",
+                            Name = "Carbon Fiber Road Bicycle",
+                            Price = 2000f,
+                            Quantity = 1,
+                            SellId = 0,
+                            TradeId = 0,
+                            Type = "Bicycles"
+                        });
                 });
 
             modelBuilder.Entity("TradeHub.Shared.Domain.SellOrder", b =>
@@ -451,11 +524,14 @@ namespace TradeHub.Server.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CustomerId")
+                    b.Property<int?>("CustomerId")
                         .HasColumnType("int");
 
                     b.Property<string>("DeliveryMode")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("SellDate")
                         .HasColumnType("datetime2");
@@ -463,12 +539,16 @@ namespace TradeHub.Server.Data.Migrations
                     b.Property<DateTime>("SellTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("StaffId")
+                    b.Property<int?>("StaffId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("ProductId")
+                        .IsUnique()
+                        .HasFilter("[ProductId] IS NOT NULL");
 
                     b.HasIndex("StaffId");
 
@@ -498,6 +578,22 @@ namespace TradeHub.Server.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Staffs");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Contact = "123",
+                            Email = "John@Doe.com",
+                            Name = "John"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Contact = "321",
+                            Email = "Dick@Harry.com",
+                            Name = "Dick"
+                        });
                 });
 
             modelBuilder.Entity("TradeHub.Shared.Domain.TradeOrder", b =>
@@ -508,13 +604,19 @@ namespace TradeHub.Server.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CustomerId")
+                    b.Property<int?>("CustomerId")
                         .HasColumnType("int");
 
                     b.Property<string>("DeliveryMode")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("StaffId")
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SellOrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StaffId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("TradeDate")
@@ -526,6 +628,12 @@ namespace TradeHub.Server.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("ProductId")
+                        .IsUnique()
+                        .HasFilter("[ProductId] IS NOT NULL");
+
+                    b.HasIndex("SellOrderId");
 
                     b.HasIndex("StaffId");
 
@@ -583,36 +691,23 @@ namespace TradeHub.Server.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TradeHub.Shared.Domain.Product", b =>
-                {
-                    b.HasOne("TradeHub.Shared.Domain.SellOrder", "SellOrder")
-                        .WithMany()
-                        .HasForeignKey("SellOrderId");
-
-                    b.HasOne("TradeHub.Shared.Domain.TradeOrder", "TradeOrder")
-                        .WithMany()
-                        .HasForeignKey("TradeOrderId");
-
-                    b.Navigation("SellOrder");
-
-                    b.Navigation("TradeOrder");
-                });
-
             modelBuilder.Entity("TradeHub.Shared.Domain.SellOrder", b =>
                 {
                     b.HasOne("TradeHub.Shared.Domain.Customer", "Customer")
                         .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CustomerId");
+
+                    b.HasOne("TradeHub.Shared.Domain.Product", "Product")
+                        .WithOne("SellOrder")
+                        .HasForeignKey("TradeHub.Shared.Domain.SellOrder", "ProductId");
 
                     b.HasOne("TradeHub.Shared.Domain.Staff", "Staff")
                         .WithMany()
-                        .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("StaffId");
 
                     b.Navigation("Customer");
+
+                    b.Navigation("Product");
 
                     b.Navigation("Staff");
                 });
@@ -621,19 +716,34 @@ namespace TradeHub.Server.Data.Migrations
                 {
                     b.HasOne("TradeHub.Shared.Domain.Customer", "Customer")
                         .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CustomerId");
+
+                    b.HasOne("TradeHub.Shared.Domain.Product", "Product")
+                        .WithOne("TradeOrder")
+                        .HasForeignKey("TradeHub.Shared.Domain.TradeOrder", "ProductId");
+
+                    b.HasOne("TradeHub.Shared.Domain.SellOrder", "SellOrder")
+                        .WithMany()
+                        .HasForeignKey("SellOrderId");
 
                     b.HasOne("TradeHub.Shared.Domain.Staff", "Staff")
                         .WithMany()
-                        .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("StaffId");
 
                     b.Navigation("Customer");
 
+                    b.Navigation("Product");
+
+                    b.Navigation("SellOrder");
+
                     b.Navigation("Staff");
+                });
+
+            modelBuilder.Entity("TradeHub.Shared.Domain.Product", b =>
+                {
+                    b.Navigation("SellOrder");
+
+                    b.Navigation("TradeOrder");
                 });
 #pragma warning restore 612, 618
         }

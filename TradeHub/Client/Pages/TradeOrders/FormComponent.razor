@@ -1,0 +1,49 @@
+﻿@inject HttpClient _client
+
+<EditForm Model="@tradeorder" OnValidSubmit="OnValidSubmit">
+	<DataAnnotationsValidator />
+	<ValidationSummary />
+	<fieldset disabled="@Disabled">
+	<div class=" form-group">
+		<label>Sell Listing ID: </label>
+		<div>
+			<InputSelect @bind-Value="tradeorder.SellOrderId" class="form-control">
+				<option value=""> --Select Product-- </option>
+				@if (SellOrders != null)
+				{
+					foreach (var sellorder in SellOrders)
+					{
+						<option value="@sellorder.Id">@sellorder.Id</option>
+					}
+				}
+			</InputSelect>
+			<ValidationMessage For="@(() => tradeorder.SellOrderId)" />
+		</div>
+	</div>
+	</fieldset>
+	@if (!Disabled)
+	{
+		<button type="submit" class="btn btn-success btn-block">
+			@ButtonText
+		</button>
+	}
+	<br />
+	<br />
+	<BackToList Target="staffs" />
+</EditForm>
+
+@code {
+	[Parameter] public bool Disabled { get; set; } = false;
+	[Parameter] public TradeOrder? tradeorder { get; set; }
+	[Parameter] public string ButtonText { get; set; } = "Save";
+	[Parameter] public EventCallback OnValidSubmit { get; set; }
+
+	private IList<SellOrder>? SellOrders;
+
+
+	protected async override Task OnInitializedAsync()
+	{
+		SellOrders = await _client.GetFromJsonAsync<List<SellOrder>>($"{Endpoints.SellOrdersEndpoint}");
+
+	}
+}

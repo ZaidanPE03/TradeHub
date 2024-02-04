@@ -8,7 +8,7 @@ using TradeHub.Server.Data;
 
 #nullable disable
 
-namespace TradeHub.Server.Data.Migrations
+namespace TradeHub.Server.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -396,7 +396,7 @@ namespace TradeHub.Server.Data.Migrations
                         {
                             Id = "3781efa7-66dc-47f0-860f-e506d04102e4",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "fbc3a2c7-7e4a-42a2-9ef3-a75363d24297",
+                            ConcurrencyStamp = "58288832-76a6-47c8-a2a7-063ec0ce4fb0",
                             Email = "admin@localhost.com",
                             EmailConfirmed = false,
                             FirstName = "Admin",
@@ -404,9 +404,9 @@ namespace TradeHub.Server.Data.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@LOCALHOST.COM",
                             NormalizedUserName = "ADMIN@LOCALHOST.COM",
-                            PasswordHash = "AQAAAAIAAYagAAAAEBaNMUUO3fba/aBRFTlreaI0l5VwXxtgwVZjtcLpISJ98LoT/YOMjO21C8/xhYYONQ==",
+                            PasswordHash = "AQAAAAIAAYagAAAAECNuWjC1IQENwJ/BAbmoHkxgMODoNX3xdv45wyrjMd20DMd63AYwpt6ZxRXurr0wxQ==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "be01d9ee-b79d-4620-aaf7-1a17db81d930",
+                            SecurityStamp = "83ac96f6-19af-41e9-9140-9bb45e847c23",
                             TwoFactorEnabled = false,
                             UserName = "admin@localhost.com"
                         });
@@ -478,23 +478,13 @@ namespace TradeHub.Server.Data.Migrations
                     b.Property<int>("SellId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("SellOrderId")
-                        .HasColumnType("int");
-
                     b.Property<int>("TradeId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("TradeOrderId")
                         .HasColumnType("int");
 
                     b.Property<string>("Type")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SellOrderId");
-
-                    b.HasIndex("TradeOrderId");
 
                     b.ToTable("Products");
 
@@ -531,11 +521,14 @@ namespace TradeHub.Server.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CustomerId")
+                    b.Property<int?>("CustomerId")
                         .HasColumnType("int");
 
                     b.Property<string>("DeliveryMode")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("SellDate")
                         .HasColumnType("datetime2");
@@ -543,12 +536,16 @@ namespace TradeHub.Server.Data.Migrations
                     b.Property<DateTime>("SellTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("StaffId")
+                    b.Property<int?>("StaffId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("ProductId")
+                        .IsUnique()
+                        .HasFilter("[ProductId] IS NOT NULL");
 
                     b.HasIndex("StaffId");
 
@@ -604,13 +601,19 @@ namespace TradeHub.Server.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("CustomerId")
+                    b.Property<int?>("CustomerId")
                         .HasColumnType("int");
 
                     b.Property<string>("DeliveryMode")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("StaffId")
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SellOrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StaffId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("TradeDate")
@@ -622,6 +625,12 @@ namespace TradeHub.Server.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("ProductId")
+                        .IsUnique()
+                        .HasFilter("[ProductId] IS NOT NULL");
+
+                    b.HasIndex("SellOrderId");
 
                     b.HasIndex("StaffId");
 
@@ -679,36 +688,23 @@ namespace TradeHub.Server.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TradeHub.Shared.Domain.Product", b =>
-                {
-                    b.HasOne("TradeHub.Shared.Domain.SellOrder", "SellOrder")
-                        .WithMany()
-                        .HasForeignKey("SellOrderId");
-
-                    b.HasOne("TradeHub.Shared.Domain.TradeOrder", "TradeOrder")
-                        .WithMany()
-                        .HasForeignKey("TradeOrderId");
-
-                    b.Navigation("SellOrder");
-
-                    b.Navigation("TradeOrder");
-                });
-
             modelBuilder.Entity("TradeHub.Shared.Domain.SellOrder", b =>
                 {
                     b.HasOne("TradeHub.Shared.Domain.Customer", "Customer")
                         .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CustomerId");
+
+                    b.HasOne("TradeHub.Shared.Domain.Product", "Product")
+                        .WithOne("SellOrder")
+                        .HasForeignKey("TradeHub.Shared.Domain.SellOrder", "ProductId");
 
                     b.HasOne("TradeHub.Shared.Domain.Staff", "Staff")
                         .WithMany()
-                        .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("StaffId");
 
                     b.Navigation("Customer");
+
+                    b.Navigation("Product");
 
                     b.Navigation("Staff");
                 });
@@ -717,19 +713,34 @@ namespace TradeHub.Server.Data.Migrations
                 {
                     b.HasOne("TradeHub.Shared.Domain.Customer", "Customer")
                         .WithMany()
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CustomerId");
+
+                    b.HasOne("TradeHub.Shared.Domain.Product", "Product")
+                        .WithOne("TradeOrder")
+                        .HasForeignKey("TradeHub.Shared.Domain.TradeOrder", "ProductId");
+
+                    b.HasOne("TradeHub.Shared.Domain.SellOrder", "SellOrder")
+                        .WithMany()
+                        .HasForeignKey("SellOrderId");
 
                     b.HasOne("TradeHub.Shared.Domain.Staff", "Staff")
                         .WithMany()
-                        .HasForeignKey("StaffId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("StaffId");
 
                     b.Navigation("Customer");
 
+                    b.Navigation("Product");
+
+                    b.Navigation("SellOrder");
+
                     b.Navigation("Staff");
+                });
+
+            modelBuilder.Entity("TradeHub.Shared.Domain.Product", b =>
+                {
+                    b.Navigation("SellOrder");
+
+                    b.Navigation("TradeOrder");
                 });
 #pragma warning restore 612, 618
         }

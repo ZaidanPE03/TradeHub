@@ -2,11 +2,18 @@
 @inject HttpClient _client
 @inject IJSRuntime js
 @attribute [Authorize]
-@using TradeHub.Client.Components
+
+
 
 
 <h3 class="card-title"> Staff Page</h3>
+<a href="/staffs/create" class="btn btn-secondary">
+	<span class="oi oi-plus"></span>
+	Create New Staff
+</a>
 <br />
+<br />
+
 
 
 @if (Staffs == null)
@@ -16,13 +23,14 @@
 
 else
 {
-	<table class="table table-responsive">
+	<table class="table table-responsive" id="staffsTable"> 
 		<thead>
 			<tr>
 				<th>Name</th>
 				<th>Contact</th>
 				<th>Email Address</th>
 				<th>Role</th>
+				<th>Actions</th>
 
 			</tr>
 		</thead>
@@ -35,6 +43,7 @@ else
 					<td>@staff.Contact</td>
 					<td>@staff.Email</td>
 					<td>@staff.Role</td>
+					
 
 					<td>
 
@@ -59,31 +68,41 @@ else
 
 }
 
- <StaffPageContentComponent />
- 
-@code 
+
+
+@code
 {
-    private List<Staff>? Staffs;
+	private List<Staff>? Staffs;
 
-    protected async override Task OnInitializedAsync()
-    {
-        Staffs = await _client.GetFromJsonAsync<List<Staff>>($"{Endpoints.StaffsEndpoint}");
-    }
+	protected async override Task OnInitializedAsync()
+	{
+		Staffs = await _client.GetFromJsonAsync<List<Staff>>($"{Endpoints.StaffsEndpoint}");
+	}
 
-    async Task Delete(int staffId)
-    {
-        if (Staffs != null)
-        {
-            var staff = Staffs.First(q => q.Id == staffId);
-            var confirm = await js.InvokeAsync<bool>("Confirm", $"Do you want to delete {staff.Name}?");
+	async Task Delete(int staffId)
+	{
+		if (Staffs != null)
+		{
+			var staff = Staffs.First(q => q.Id == staffId);
+			var confirm = await js.InvokeAsync<bool>("confirm", $"Do you want to delete {staff.Name}?");
 
-            if(confirm)
-            {
-                await _client.DeleteAsync($"{Endpoints.StaffsEndpoint}/{staffId}");
-                await OnInitializedAsync();
-            }
+			if (confirm)
+			{
+				await _client.DeleteAsync($"{Endpoints.StaffsEndpoint}/{staffId}");
+				await OnInitializedAsync();
+			}
 
-        }
-    }
+		}
+	}
+
+	// protected async override Task OnAfterRenderAsync(bool firstRender)
+	// {
+	// 	await js.InvokeVoidAsync("AddDataTable", "#staffsTable");
+	// }
+
+	// public void Dispose()
+	// {
+	// 	js.InvokeVoidAsync("DataTablesDispose", "#staffsTable");
+	// }
 
 }

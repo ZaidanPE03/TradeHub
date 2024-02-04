@@ -7,7 +7,11 @@
 
 <h3 class="card-title"> TradeOrder Page</h3>
 <br />
-
+<a href="/tradeorders/create" class="btn btn-secondary">
+	<span class="oi oi-plus"></span>
+	New Listing
+</a>
+<br />
 
 @if (TradeOrders == null)
 {
@@ -19,8 +23,8 @@ else
 	<table class="table table-responsive">
 		<thead>
 			<tr>
+				<th>Product Name</th>
 				<th>Trade Date</th>
-				<th>Trade Time</th>
 				<th>Delivery Mode</th>
 
 			</tr>
@@ -30,9 +34,9 @@ else
 			@foreach (var tradeorder in TradeOrders)
 			{
 				<tr>
-					<td>@tradeorder.TradeDate</td>
-					<td>@tradeorder.TradeTime</td>
-					<td>@tradeorder.DeliveryMode</td>
+					<td>@GetProductName(tradeorder.SellOrder.ProductId)</td>
+					<td>@tradeorder.SellOrder.SellDate</td>
+					<td>@tradeorder.SellOrder.DeliveryMode</td>
 					
 
 					<td>
@@ -63,25 +67,34 @@ else
 {
     private List<TradeOrder>? TradeOrders;
 
+	private List<Product>? Products;
+
     protected async override Task OnInitializedAsync()
     {
         TradeOrders = await _client.GetFromJsonAsync<List<TradeOrder>>($"{Endpoints.TradeOrdersEndpoint}");
+		Products = await _client.GetFromJsonAsync<List<Product>>($"{Endpoints.ProductsEndpoint}");
     }
 
-    async Task Delete(int tradeorderId)
-    {
-        if (TradeOrders != null)
-        {
-            var tradeorder = TradeOrders.First(q => q.Id == tradeorderId);
-            var confirm = await js.InvokeAsync<bool>("Confirm", $"Do you want to delete {tradeorder.Id}?");
+	private string GetProductName(int? productId)
+	{
+		var product = Products?.FirstOrDefault(p => p.Id == productId);
 
-            if(confirm)
-            {
-                await _client.DeleteAsync($"{Endpoints.TradeOrdersEndpoint}/{tradeorderId}");
-                await OnInitializedAsync();
-            }
+		return product != null ? product.Name : "Product Not Found";
+	}
 
-        }
-    }
+	async Task Delete(int tradeorderId)
+	{
+		if (TradeOrders != null)
+		{
+			var tradeorder = TradeOrders.First(q => q.Id == tradeorderId);
+			var confirm = await js.InvokeAsync<bool>("confirm", $"Do you want to delete{tradeorderId}?");
+
+			if (confirm)
+			{
+				await _client.DeleteAsync($"{Endpoints.TradeOrdersEndpoint}/{tradeorderId}");
+				await OnInitializedAsync();
+			}
+		}
+	}
 
 }

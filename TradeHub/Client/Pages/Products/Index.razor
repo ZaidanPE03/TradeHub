@@ -5,7 +5,15 @@
 @using TradeHub.Client.Components
 
 
+
 <h3 class="card-title"> Product Page</h3>
+<br />
+
+<a href="/products/create" class="btn btn-secondary">
+	<span class="oi oi-plus"></span>
+	Add New Product
+</a>
+<br />
 <br />
 
 
@@ -16,7 +24,7 @@
 
 else
 {
-	<table class="table table-responsive">
+	<table class="table table-responsive" id="productsTable">
 		<thead>
 			<tr>
 				<th>Name</th>
@@ -24,6 +32,7 @@ else
 				<th>Type</th>
 				<th>Quantity</th>
 				<th>Price</th>
+				<th>Actions</th>
 
 			</tr>
 		</thead>
@@ -71,20 +80,29 @@ else
         Products = await _client.GetFromJsonAsync<List<Product>>($"{Endpoints.ProductsEndpoint}");
     }
 
-    async Task Delete(int productId)
-    {
-        if (Products != null)
-        {
-            var product = Products.First(q => q.Id == productId);
-            var confirm = await js.InvokeAsync<bool>("Confirm", $"Do you want to delete {product.Name}?");
+	async Task Delete(int productId)
+	{
+		if (Products != null)
+		{
+			var product = Products.First(q => q.Id == productId);
+			var confirm = await js.InvokeAsync<bool>("confirm", $"Do you want to delete{product.Name}?");
 
-            if(confirm)
-            {
-                await _client.DeleteAsync($"{Endpoints.ProductsEndpoint}/{productId}");
-                await OnInitializedAsync();
-            }
+			if (confirm)
+			{
+				await _client.DeleteAsync($"{Endpoints.ProductsEndpoint}/{productId}");
+				await OnInitializedAsync();
+			}
+		}
+	}
 
-        }
-    }
+	// protected async override Task OnAfterRenderAsync(bool firstRender)
+	// {
+	// 	await js.InvokeVoidAsync("AddDataTable", "#productsTable");
+	// }
+
+	// public void Dispose()
+	// {
+	// 	js.InvokeVoidAsync("DataTablesDispose", "#productsTable");
+	// }
 
 }

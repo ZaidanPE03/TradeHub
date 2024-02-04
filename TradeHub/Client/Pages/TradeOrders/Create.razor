@@ -1,0 +1,57 @@
+﻿@page "/tradeorders/create"
+@inject HttpClient _client
+@inject NavigationManager _navManager
+
+<h3 class="card-title"> Create New TradeOrder</h3>
+<hr />
+<br />
+
+<EditForm Model="@tradeorder" OnValidSubmit="CreateTradeOrder">
+	<DataAnnotationsValidator />
+	<ValidationSummary />
+
+	<div class=" form-group">
+		<label>Sell Listing ID: </label>
+		<div>
+			<InputSelect @bind-Value="tradeorder.SellOrderId" class="form-control">
+				<option value=""> --Select Product-- </option>
+				@if (SellOrders != null)
+				{
+					foreach (var sellorder in SellOrders)
+					{
+						<option value="@sellorder.Id">@sellorder.Id</option>
+					}
+				}
+			</InputSelect>
+			<ValidationMessage For="@(() => tradeorder.SellOrderId)" />
+		</div>
+	</div>
+
+
+	<button type="submit" class="btn btn-success btn-block">
+		Create TradeOrder
+	</button>
+</EditForm>
+
+@code
+{
+
+	TradeOrder tradeorder = new TradeOrder();
+
+	private IList<SellOrder>? SellOrders;
+
+
+	protected async override Task OnInitializedAsync()
+	{
+		SellOrders = await _client.GetFromJsonAsync<List<SellOrder>>($"{Endpoints.SellOrdersEndpoint}");
+
+	}
+
+
+	private async Task CreateTradeOrder()
+	{
+		await _client.PostAsJsonAsync(Endpoints.TradeOrdersEndpoint, tradeorder);
+		_navManager.NavigateTo("/tradeorders/");
+	}
+
+}
